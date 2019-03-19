@@ -3,9 +3,9 @@ var axios = require('axios');
 var router = express.Router();
 var ip = require('./ip.js');
 
-activeBackend = 1;
+active = 1;
 
-postPaths = [
+post = [
   '/register',
   '/creategroup',
   '/joingroup',
@@ -16,7 +16,7 @@ postPaths = [
   '/setread'
 ];
 
-getPaths = [
+get = [
   '/getuserinformation',
   '/getgroup',
   '/getm',
@@ -25,14 +25,14 @@ getPaths = [
   '/getmessageorder',
 ];
 
-postPaths.map(path => {
+post.map(path => {
   router.post(path, function (req, res, next) {
-    // ACTIVE PRIMARY BACKEND
-    axios.post(ip.primaryBackend + path, req.body)
+    // primary backend
+    axios.post(ip.primary + path, req.body)
       .then(function (response) {
-        if (activeBackend === 2) {
+        if (active === 2) {
           console.log("primary backend is back and taking over the system");
-          activeBackend = 1;
+          active = 1;
         }
         if (path === '/sendm') {
           io.emit('chat', response.data);
@@ -43,13 +43,13 @@ postPaths.map(path => {
       })
       .catch(function (err) {
 
-        // ACTIVE SECONDARY BACKEND
-        axios.post(ip.secondaryBackend + path, req.body)
+        // secondary backend
+        axios.post(ip.secondary + path, req.body)
           .then(function (response) {
-            if (activeBackend === 1) {
+            if (active === 1) {
               console.log("primary backend is inactived");
               console.log("secondary backend is taking over the system");
-              activeBackend = 2;
+              active = 2;
             }
             if (path === '/sendm') io.emit('chat', response.data);
             console.log('From: secondary backend');
@@ -63,14 +63,14 @@ postPaths.map(path => {
   });
 });
 
-getPaths.map(path => {
+get.map(path => {
   router.get(path, function (req, res, next) {
-    // ACTIVE PRIMARY BACKEND
-    axios.get(ip.primaryBackend + path, { params: req.query })
+    // primary backend
+    axios.get(ip.primary + path, { params: req.query })
       .then(function (response) {
-        if (activeBackend === 2) {
+        if (active === 2) {
           console.log("primary backend is back and taking over the system");
-          activeBackend = 1;
+          active = 1;
         }
         console.log('From: primary backend');
         res.send(response.data);
@@ -78,13 +78,13 @@ getPaths.map(path => {
       })
       .catch(function (err) {
 
-        // ACTIVE SECONDARY BACKEND
-        axios.get(ip.secondaryBackend + path, { params: req.query })
+        // secondary backend
+        axios.get(ip.secondary + path, { params: req.query })
           .then(function (response) {
-            if (activeBackend === 1) {
+            if (active === 1) {
               console.log("primary backend is inactived");
               console.log("secondary backend is taking over the system");
-              activeBackend = 2;
+              active = 2;
             }
             console.log('From: secondary backend');
             res.send(response.data);
