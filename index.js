@@ -86,7 +86,7 @@ get.map(path => {
               console.log("secondary backend is taking over the system");
               active = 2;
             }
-            console.log('From: secondary backend');
+            console.log('From: Secondary backend');
             res.send(response.data);
           })
           .catch(function (err) {
